@@ -36,6 +36,7 @@ import type * as engine from "../engine";
 import type * as http from "../http";
 import type * as init from "../init";
 import type * as journal from "../journal";
+import type * as lib_bagel from "../lib/bagel";
 import type * as lib_cached_llm from "../lib/cached_llm";
 import type * as lib_memory from "../lib/memory";
 import type * as lib_migrations from "../lib/migrations";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   init: typeof init;
   journal: typeof journal;
+  "lib/bagel": typeof lib_bagel;
   "lib/cached_llm": typeof lib_cached_llm;
   "lib/memory": typeof lib_memory;
   "lib/migrations": typeof lib_migrations;

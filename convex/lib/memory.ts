@@ -11,7 +11,8 @@ import { asyncMap } from './utils.js';
 import { EntryOfType, Memories, Memory, MemoryOfType, MemoryType } from '../schema.js';
 import { chatCompletion } from './openai.js';
 import { clientMessageMapper } from '../chat.js';
-import { pineconeAvailable, queryVectors, upsertVectors } from './pinecone.js';
+import { bagelDBAvailable, queryVectors, upsertVectors } from './bagel.js';
+// import { pineconeAvailable, queryVectors, upsertVectors } from './pinecone.js';
 import { chatHistoryFromMessages } from '../conversation.js';
 import { MEMORY_ACCESS_THROTTLE } from '../config.js';
 import { fetchEmbeddingBatchWithCache } from './cached_llm.js';
@@ -44,20 +45,34 @@ export interface MemoryDB {
 }
 
 export function MemoryDB(ctx: ActionCtx): MemoryDB {
-  if (!pineconeAvailable()) {
-    throw new Error('Pinecone environment variables not set. See the README.');
+  // if (!pineconeAvailable()) {
+  //   throw new Error('Pinecone environment variables not set. See the README.');
+  // }
+  // // If Pinecone env variables are defined, use that.
+  // const vectorSearch = async (embedding: number[], playerId: Id<'players'>, limit: number) =>
+  //   queryVectors('embeddings', embedding, { playerId }, limit);
+  // const externalEmbeddingStore = async (
+  //   embeddings: { id: Id<'embeddings'>; values: number[]; metadata: object }[],
+  // ) => upsertVectors('embeddings', embeddings);
+
+
+  if (!bagelDBAvailable()) {
+    throw new Error('Bagel not available. See the README.');
   }
-  // If Pinecone env variables are defined, use that.
+
   const vectorSearch = async (embedding: number[], playerId: Id<'players'>, limit: number) =>
-    queryVectors('embeddings', embedding, { playerId }, limit);
+    queryVectors('embeddings', embedding, limit, { playerId });
+
   const externalEmbeddingStore = async (
     embeddings: { id: Id<'embeddings'>; values: number[]; metadata: object }[],
   ) => upsertVectors('embeddings', embeddings);
+
 
   return {
     // Finds memories but doesn't mark them as accessed.
     async search(playerId, queryEmbedding, limit = 100) {
       const results = await vectorSearch(queryEmbedding, playerId, limit);
+      console.log('search results', results);
       const embeddingIds = results.map((r) => r._id);
       const memories = await ctx.runQuery(internal.lib.memory.getMemories, {
         playerId,
